@@ -1275,6 +1275,8 @@ test("focus-removed flags outline-style: none and outlineStyle: \"none\" (issue 
     lines('export const Field = () => <input style={{ outlineStyle: "none" }} />;\n:focus-visible { outline: 2px solid blue; }\n'),
     [],
   );
+  assert.deepStrictEqual(lines('<input style={{ outlineStyle: "none" }} className="focus-visible:ring-2" />\n'), []);
+  assert.deepStrictEqual(lines("input:focus { outline-style: none; } input:focus-visible { outline: 2px solid blue; }\n", "field.css"), []);
 });
 
 test("nested-cards ignores dotted subcomponents and ion-card parts, still flags a real nested card", () => {
