@@ -1457,6 +1457,26 @@ test("img-no-alt accepts Angular [alt] bindings and Svelte {alt} shorthand", () 
   assert.deepStrictEqual(rulesFor("<img {src} />\n", "A.svelte"), ["img-no-alt"]);
 });
 
+test("img-no-alt ignores the word alt inside other attribute values (issue #262)", () => {
+  const rulesFor = (src, file) => scanSource(src, file, { kind: "web" }).map((f) => f.rule);
+  // Issue #262 repro:
+  assert.deepStrictEqual(rulesFor('<img src="/hero.png" class="card alt wide" />\n', "Gallery.html"), ["img-no-alt"]);
+  assert.deepStrictEqual(rulesFor('<img src="/team.png" title="Use alt text" />\n', "Gallery.html"), ["img-no-alt"]);
+  assert.deepStrictEqual(rulesFor('<img src="/team.png" title=\'Use alt text\' />\n', "Gallery.html"), ["img-no-alt"]);
+  // Quiet cases: real bare alt, alt="", alt="Team", bound :alt, [alt], {alt}
+  assert.deepStrictEqual(rulesFor('<img src="/a.png" alt>\n', "Gallery.html"), []);
+  assert.deepStrictEqual(rulesFor('<img src="/a.png" alt="" />\n', "Gallery.html"), []);
+  assert.deepStrictEqual(rulesFor('<img src="/a.png" alt="Team" />\n', "Gallery.html"), []);
+  assert.deepStrictEqual(rulesFor('<img :src="u" :alt="n" />\n', "Gallery.vue"), []);
+  assert.deepStrictEqual(rulesFor('<img [src]="u" [alt]="n" />\n', "Gallery.component.html"), []);
+  assert.deepStrictEqual(rulesFor('<img {src} {alt} />\n', "Gallery.svelte"), []);
+  // A real alt alongside class="card alt wide" stays quiet
+  assert.deepStrictEqual(rulesFor('<img src="/hero.png" class="card alt wide" alt="Hero" />\n', "Gallery.html"), []);
+  assert.deepStrictEqual(rulesFor('<img src="/hero.png" alt class="card alt wide" />\n', "Gallery.html"), []);
+  assert.deepStrictEqual(rulesFor('<img src="/hero.png" class = "card alt wide" />\n', "Gallery.html"), ["img-no-alt"]);
+  assert.deepStrictEqual(rulesFor("<img src={src} title={`Bob's photo`} alt class='thumb' />\n", "Thumb.svelte"), []);
+});
+
 test("img-no-alt flags Nuxt Image's NuxtImg and NuxtPicture without alt, also kebab-case", () => {
   const altLines = (src) => scanSource(src, "Hero.vue", { kind: "web" }).filter((f) => f.rule === "img-no-alt").map((f) => f.line);
   // Issue #203: the repro.
