@@ -1595,6 +1595,29 @@ test("glow-shadow skips inset accent bars with no blur (#111)", () => {
   );
 });
 
+test("glow-shadow flags boxShadow and textShadow in JS style objects (#251)", () => {
+  // Issue #251 repro: the flag lands on line 3, like the CSS box-shadow case.
+  const hero = [
+    "export function Hero() {",
+    "  return (",
+    '    <div style={{ boxShadow: "0 0 40px rgba(124, 58, 237, 0.6)" }}>',
+    "      Pro",
+    "    </div>",
+    "  );",
+    "}",
+  ].join("\n");
+  assert.deepStrictEqual(scanSource(hero, "Hero.tsx").map((f) => [f.rule, f.line]), [["glow-shadow", 3]]);
+  // textShadow, single quotes, backticks, and a later key in the same object.
+  assert.deepStrictEqual(scanSource(`<div style={{ textShadow: '0 0 12px #7c3aed' }} />\n`, "a.tsx").map((f) => f.rule), ["glow-shadow"]);
+  assert.deepStrictEqual(scanSource("<div style={{ boxShadow: `0 0 40px #7c3aed` }} />\n", "a.tsx").map((f) => f.rule), ["glow-shadow"]);
+  assert.deepStrictEqual(
+    scanSource(`<div style={{ boxShadow: "0 0 40px rgba(124, 58, 237, 0.6)", color: "blue" }} />\n`, "a.tsx").map((f) => f.rule),
+    ["glow-shadow"],
+  );
+  // A neutral shadow stays quiet.
+  assert.deepStrictEqual(scanSource(`<div style={{ boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)" }} />\n`, "a.tsx"), []);
+});
+
 test("hover-scale flags Tailwind arbitrary scale values of 1.02 and above", () => {
   const rulesFor = (src) => scanSource(src, "a.tsx").map((f) => f.rule);
   // The issue's example line, plus the group- prefix variant.
