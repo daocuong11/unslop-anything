@@ -1631,8 +1631,11 @@ test("glow-shadow flags boxShadow and textShadow in JS style objects (#251)", ()
     scanSource(`<div style={{ boxShadow: "0 0 40px rgba(124, 58, 237, 0.6)", color: "blue" }} />\n`, "a.tsx").map((f) => f.rule),
     ["glow-shadow"],
   );
-  // A neutral shadow stays quiet.
+  assert.deepStrictEqual(scanSource("<div style={{ boxShadow: `0 0 ${blur}px #7c3aed` }} />\n", "a.tsx").map((f) => f.rule), ["glow-shadow"]);
+  assert.deepStrictEqual(scanSource("const glow = {\n  boxShadow: `0 0 40px\n    #7c3aed`,\n};\n", "a.ts").map((f) => [f.rule, f.line]), [["glow-shadow", 2]]);
+  // A neutral shadow stays quiet, and a later key is not read as part of it.
   assert.deepStrictEqual(scanSource(`<div style={{ boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)" }} />\n`, "a.tsx"), []);
+  assert.deepStrictEqual(scanSource(`<div style={{ boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)", color: "#7c3aed" }} />\n`, "a.tsx").filter((f) => f.rule === "glow-shadow"), []);
 });
 
 test("hover-scale flags Tailwind arbitrary scale values of 1.02 and above", () => {
