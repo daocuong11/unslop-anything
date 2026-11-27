@@ -1465,6 +1465,41 @@ test("nested-cards flags PrimeNG p-card nesting, not other p- tags inside one ca
   assert.deepStrictEqual(cardLines("<mat-card>\n  <mat-card>Pro plan</mat-card>\n</mat-card>\n"), [[1, "noticeable"]]);
 });
 
+test("nested-cards flags Chakra UI v3 Card.Root nesting, not its card parts (issue #305)", () => {
+  const cardLines = (src, file = "Plans.tsx") => scanSource(src, file).filter((f) => f.rule === "nested-cards").map((f) => [f.line, f.severity]);
+  // Issue #305 repro:
+  const repro = [
+    'import { Card} from "@chakra-ui/react";,
+    "",
+    "export const Plans = () => (",
+    "  <Card.Root>",
+    "    <Card.Body>",
+    "      <Card.Root>",
+    "        <Card.Body>Pro plan</Card.Body>",
+    "      </Card.Root>",
+    "    </Card.Body>",
+    "  </Card.Root>",
+    ");",
+    ].join("\n");
+  assert.deepStrictEqual(cardLines(repro), [[4, "noticeable"]]);
+  // A single Card.Root with its parts inside stays quiet, as do sibling cards.
+  const single = [
+    'import { Card} from "@chakra-ui/react";,
+    "",
+    "export const Plans = () => (",
+    "  <Card.Root>",
+    "    <Card.Header>Plans</Card.Header>",
+    "    <Card.Body>Pro plan</Card.Body>",
+    "    <Card.Footer>From $9</Card.Footer>",
+    "  </Card.Root>",
+    ");",
+    ].join("\n");
+  assert.deepStrictEqual(cardLines(single), []);
+  assert.deepStrictEqual(cardLines("<Card.Root>Pro</Card.Root>\n<Card.Root>Team</Card.Root>\n"), []);
+  // The existing cards keep working
+  assert.deepStrictEqual(cardLines("<Card><Card>Pro plan</Card></Card>\n"), [[1, "noticeable"]]);
+});
+
 test("nested-cards reads opening tags with tagEnd so arrows or > in props do not misread sibling cards", () => {
   const rulesFor = (src, file = "a.tsx") => scanSource(src, file).filter((f) => f.rule === "nested-cards").map((f) => f.rule);
   assert.deepStrictEqual(rulesFor("<Card onClick={() => open()} />\n<Card><p>Second</p></Card>\n"), []);
