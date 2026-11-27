@@ -1428,6 +1428,9 @@ const rules = [
       }
       if (!/focus-visible/.test(code)) {
         for (const m of matches(/outline:\s*(?:["']?none["']?|0\b)/, code)) hits.push(m.index);
+        // The longhand: `outline-style: none` in CSS and `outlineStyle: "none"`
+        // in a JS style object (#250) remove the focus outline just the same.
+        for (const m of matches(/outline-style\s*:\s*["']?none\b["']?|outlineStyle\s*:\s*["']?none\b["']?/, code)) hits.push(m.index);
       }
       return hits;
     },

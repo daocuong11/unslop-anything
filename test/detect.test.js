@@ -1262,6 +1262,23 @@ test("focus-removed flags outline: none and outline: 0 in JS/TS files (issue #22
   assert.deepStrictEqual(lines('<input style={{ outline: "2px solid #2563eb" }} />\n'), []);
 });
 
+test("focus-removed flags outline-style: none and outlineStyle: \"none\" (issue #250)", () => {
+  const lines = (src, file = "Field.tsx") => scanSource(src, file, { kind: "web" }).filter((f) => f.rule === "focus-removed").map((f) => f.line);
+  // Issue #250 repro:
+  assert.deepStrictEqual(lines('export const Field = () => <input style={{ outlineStyle: "none" }} aria-label="Email" />;\n'), [1]);
+  assert.deepStrictEqual(lines("input:focus { outline-style: none; }\n", "field.css"), [1]);
+  assert.deepStrictEqual(lines("<input style={{ outlineStyle: 'none' }} />\n"), [1]);
+  // The quiet cases: a real outline value, and a file with a focus-visible style.
+  assert.deepStrictEqual(lines("input:focus { outline-style: solid; }\n", "field.css"), []);
+  assert.deepStrictEqual(lines('<input style={{ outlineStyle: "auto" }} />\n'), []);
+  assert.deepStrictEqual(
+    lines('export const Field = () => <input style={{ outlineStyle: "none" }} />;\n:focus-visible { outline: 2px solid blue; }\n'),
+    [],
+  );
+  assert.deepStrictEqual(lines('<input style={{ outlineStyle: "none" }} className="focus-visible:ring-2" />\n'), []);
+  assert.deepStrictEqual(lines("input:focus { outline-style: none; } input:focus-visible { outline: 2px solid blue; }\n", "field.css"), []);
+});
+
 test("nested-cards ignores dotted subcomponents and ion-card parts, still flags a real nested card", () => {
   const rulesFor = (src, file = "a.tsx") => scanSource(src, file).map((f) => f.rule);
   // Issue #65: dotted subcomponents of a single card are not nested cards.
