@@ -1469,7 +1469,7 @@ test("nested-cards flags Chakra UI v3 Card.Root nesting, not its card parts (iss
   const cardLines = (src, file = "Plans.tsx") => scanSource(src, file).filter((f) => f.rule === "nested-cards").map((f) => [f.line, f.severity]);
   // Issue #305 repro:
   const repro = [
-    'import { Card} from "@chakra-ui/react";,
+    'import { Card} from "@chakra-ui/react";',
     "",
     "export const Plans = () => (",
     "  <Card.Root>",
@@ -1484,7 +1484,7 @@ test("nested-cards flags Chakra UI v3 Card.Root nesting, not its card parts (iss
   assert.deepStrictEqual(cardLines(repro), [[4, "noticeable"]]);
   // A single Card.Root with its parts inside stays quiet, as do sibling cards.
   const single = [
-    'import { Card} from "@chakra-ui/react";,
+    'import { Card} from "@chakra-ui/react";',
     "",
     "export const Plans = () => (",
     "  <Card.Root>",
