@@ -1028,7 +1028,16 @@ const rules = [
       // does not count. backdropFilter in a JS style object counts the same
       // way, except backdropFilter: "none".
       const all = [...matches(/\.(?:ultraThin|thin|regular|thick|ultraThick)Material\b|<BlurView\b|backdrop-filter|BackdropFilter\(|ImageFilter\.blur|\.glassEffect\(|\bbackdrop-blur(?!-none\b)|\bbackdropFilter\b(?!\s*:\s*["'`]none["'`])/, code)];
-      return all.length >= 3 ? [all[0].index] : [];
+      // A `-webkit-backdrop-filter` written next to the standard property is
+      // the same blur surface, not a second one (#298): the `backdrop-filter`
+      // inside `-webkit-backdrop-filter` already matches, so a standard
+      // `backdrop-filter` that directly follows the prefixed declaration in
+      // the same rule is dropped. A lone prefixed declaration still counts.
+      const surfaces = all.filter((m) => {
+        if (code.slice(m.index - 8, m.index) === "-webkit-") return true;
+        return !/-webkit-backdrop-filter\s*:[^;{}]*;\s*$/.test(code.slice(0, m.index));
+      });
+      return surfaces.length >= 3 ? [surfaces[0].index] : [];
     },
   },
   {
