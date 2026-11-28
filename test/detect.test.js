@@ -2407,6 +2407,26 @@ test("glass-everywhere counts a -webkit-backdrop-filter next to backdrop-filter 
     "}",
   ].join("\n");
   assert.deepStrictEqual(scanSource(reversed, "glass.css"), []);
+
+  const apart = [
+    ".nav { -webkit-backdrop-filter: blur(12px); background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(12px); }",
+    ".modal { backdrop-filter: blur(20px); color: white; -webkit-backdrop-filter: blur(20px); }",
+  ].join("\n");
+  assert.deepStrictEqual(scanSource(apart, "glass.css"), []);
+
+  const prefixOnly = [
+    ".a { -webkit-backdrop-filter: blur(8px); }",
+    ".b { -webkit-backdrop-filter: blur(12px); }",
+    ".c { -webkit-backdrop-filter: blur(16px); }",
+  ].join("\n");
+  assert.deepStrictEqual(scanSource(prefixOnly, "glass.css").map((f) => f.rule), ["glass-everywhere"]);
+
+  const mixed = [
+    ".a { -webkit-backdrop-filter: blur(8px); }",
+    ".b { backdrop-filter: blur(12px); }",
+    ".c { backdrop-filter: blur(16px); }",
+  ].join("\n");
+  assert.deepStrictEqual(scanSource(mixed, "glass.css").map((f) => f.rule), ["glass-everywhere"]);
 });
 
 test("tracked-caps-label catches leading-dot Tailwind tracking and rem letter-spacing", () => {
