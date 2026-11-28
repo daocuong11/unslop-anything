@@ -2345,6 +2345,19 @@ test("glass-everywhere counts a -webkit-backdrop-filter next to backdrop-filter 
     ".sheet { backdrop-filter: blur(8px); }",
   ].join("\n");
   assert.deepStrictEqual(scanSource(plain, "glass.css").map((f) => f.rule), ["glass-everywhere"]);
+
+  // The same pair written standard-first also counts as one surface.
+  const reversed = [
+    ".nav {",
+    "  backdrop-filter: blur(12px);",
+    "  -webkit-backdrop-filter: blur(12px);",
+    "}",
+    ".modal {",
+    "  backdrop-filter: blur(20px);",
+    "  -webkit-backdrop-filter: blur(20px);",
+    "}",
+  ].join("\n");
+  assert.deepStrictEqual(scanSource(reversed, "glass.css"), []);
 });
 
 test("tracked-caps-label catches leading-dot Tailwind tracking and rem letter-spacing", () => {
