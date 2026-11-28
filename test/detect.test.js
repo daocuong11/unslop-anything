@@ -2081,6 +2081,23 @@ test("sparkle-icon flags the singular and combined icon names", () => {
   // A word that only contains the letters is a different component, not a
   // sparkle icon: word boundaries keep SparkleCounter unflagged.
   assert.deepStrictEqual(rulesFor("<SparkleCounter />\n"), []);
+  // Issue #302: Primer's filled sparkle icons from @primer/octicons-react.
+  assert.deepStrictEqual(rulesFor("<SparkleFillIcon />\n"), ["sparkle-icon"]);
+  assert.deepStrictEqual(rulesFor("<SparklesFillIcon />\n"), ["sparkle-icon"]);
+  const ask = [
+    'import { SparkleFillIcon, SparklesFillIcon } from "@primer/octicons-react";',
+    "",
+    "export const Ask = () => <button><SparkleFillIcon /> Ask</button>;",
+    "export const Summarize = () => <button><SparklesFillIcon /> Summarize</button>;",
+  ].join("\n");
+  assert.deepStrictEqual(
+    scanSource(ask, "Ask.tsx").filter((f) => f.rule === "sparkle-icon").map((f) => f.line),
+    [1, 3, 4],
+  );
+  // Other filled Octicons stay quiet, as does a longer name that only starts
+  // the same way.
+  assert.deepStrictEqual(rulesFor("<StarFillIcon />\n"), []);
+  assert.deepStrictEqual(rulesFor("<SparkleFillIconButton />\n"), []);
 });
 
 test("sparkle-icon flags sparkle-derived SF Symbols but not words containing sparkles", () => {
