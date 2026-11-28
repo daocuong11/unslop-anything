@@ -1032,9 +1032,13 @@ const rules = [
       // the same blur surface, not a second one (#298): the `backdrop-filter`
       // inside `-webkit-backdrop-filter` already matches, so a standard
       // `backdrop-filter` that directly follows the prefixed declaration in
-      // the same rule is dropped. A lone prefixed declaration still counts.
+      // the same rule is dropped — and likewise a prefixed declaration that
+      // directly follows the standard one, so the pair counts once in
+      // either order. A lone prefixed declaration still counts.
       const surfaces = all.filter((m) => {
-        if (code.slice(m.index - 8, m.index) === "-webkit-") return true;
+        if (code.slice(m.index - 8, m.index) === "-webkit-") {
+          return !/(?<!-webkit-)backdrop-filter\s*:[^;{}]*;\s*$/.test(code.slice(0, m.index - 8));
+        }
         return !/-webkit-backdrop-filter\s*:[^;{}]*;\s*$/.test(code.slice(0, m.index));
       });
       return surfaces.length >= 3 ? [surfaces[0].index] : [];
