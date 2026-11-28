@@ -992,7 +992,8 @@ const rules = [
         // Vuetify's v-card, Angular Material's mat-card, Quasar's q-card and Element Plus's el-card nest like ion-card (#202, #228).
         // Naive UI's n-card and Ant Design Vue's a-card nest like ion-card too (#266).
         // So does PrimeNG's p-card (#280).
-        for (const m of matches(/<(Card|IonCard|ion-card|VCard|v-card|mat-card|QCard|q-card|ElCard|el-card|NCard|n-card|ACard|a-card|p-card)(?=[\s/>])/, code)) {
+        // Chakra UI v3's Card.Root is the card itself; its Card.Header/Body/Footer parts are not (#305).
+        for (const m of matches(/<(Card\.Root|Card|IonCard|ion-card|VCard|v-card|mat-card|QCard|q-card|ElCard|el-card|NCard|n-card|ACard|a-card|p-card)(?=[\s/>])/, code)) {
           const end = tagEnd(code, m.index + m[0].length);
           if (end === -1) continue;
           if (/\/\s*$/.test(code.slice(m.index + m[0].length, end))) continue;
@@ -1000,7 +1001,7 @@ const rules = [
           const close = code.indexOf(`</${tag}>`, end + 1);
           if (close === -1) continue;
           const inner = code.slice(end + 1, close);
-          if (new RegExp(`<${tag}(?=[\\s/>])`).test(inner)) hits.push(m.index);
+          if (new RegExp(`<${tag.replace(/\./g, "\\.")}(?=[\\s/>])`).test(inner)) hits.push(m.index);
         }
       } else {
         const card = /\b(?:Elevated|Outlined|Filled)?Card\s*[({]/;
@@ -1060,7 +1061,7 @@ const rules = [
       // when the literal is exactly that symbol; substrings and apostrophes
       // inside longer text stay quiet.
       const symbol = /^(?:sparkles?(?:\.[a-z0-9._-]+)?|wand\.and\.(?:stars|sparkles)(?:\.[a-z0-9._-]+)?|[a-z0-9-]+:sparkles?|i-[a-z0-9-]+-sparkles?|wand-magic-sparkles)$/;
-      const re = /\bauto_awesome\b|\bAutoAwesome(?:Outlined|Rounded|Sharp|TwoTone)?(?:Icon)?\b|\bSparkles\b|\bSparklesIcon\b|\bSparkle\b|\bSparkleIcon\b|\bIconSparkles\b|\bWandSparkles\b|\bWandSparklesIcon\b|✨|\b(?:Hi(?:Outline|Mini)?|Lu|Tb|Pi|Bs|Io|Ri)Sparkles?(?:Fill|Line|Outline|Sharp|Bold|Duotone|Light|Thin)?\b|\bRiSparkling(?:2)?(?:Fill|Line)?\b|\bMd(?:Outline|Round|Sharp|TwoTone)?AutoAwesome\b|\bfa(?:WandMagic)?Sparkles\b|(?<![\w-])fa-(?:wand-magic-)?sparkles(?![\w-])|(?<![\w-])ri-sparkling(?:-2)?-(?:line|fill)(?![\w-])|\bBsStars\b|(?<![\w-])bi-stars(?![\w-])/;
+      const re = /\bauto_awesome\b|\bAutoAwesome(?:Outlined|Rounded|Sharp|TwoTone)?(?:Icon)?\b|\bSparkles\b|\bSparklesIcon\b|\bSparkle\b|\bSparkleIcon\b|\bSparkles?FillIcon\b|\bIconSparkles\b|\bWandSparkles\b|\bWandSparklesIcon\b|✨|\b(?:Hi(?:Outline|Mini)?|Lu|Tb|Pi|Bs|Io|Ri)Sparkles?(?:Fill|Line|Outline|Sharp|Bold|Duotone|Light|Thin)?\b|\bRiSparkling(?:2)?(?:Fill|Line)?\b|\bMd(?:Outline|Round|Sharp|TwoTone)?AutoAwesome\b|\bfa(?:WandMagic)?Sparkles\b|(?<![\w-])fa-(?:wand-magic-)?sparkles(?![\w-])|(?<![\w-])ri-sparkling(?:-2)?-(?:line|fill)(?![\w-])|\bBsStars\b|(?<![\w-])bi-stars(?![\w-])/;
       const hits = [...matches(re, code)].map((m) => m.index);
 
       for (const literal of stringLiterals(code, stack)) {
@@ -1479,7 +1480,8 @@ const rules = [
       // Quasar renders <q-img> / <QImg> and Element Plus <el-image> / <ElImage> as <img> too (#249).
       // Astro renders <Picture> as an <img> too (#268).
       // So do Gatsby's <StaticImage> and <GatsbyImage> from gatsby-plugin-image (#285).
-      for (const m of matches(/<(?:img|Image|Picture|NuxtImg|NuxtPicture|nuxt-img|nuxt-picture|v-img|VImg|ion-img|IonImg|q-img|QImg|el-image|ElImage|StaticImage|GatsbyImage)(?=[\s/>])/, code)) {
+      // SvelteKit's <enhanced:img> from @sveltejs/enhanced-img renders an <img> too (#304).
+      for (const m of matches(/<(?:img|enhanced:img|Image|Picture|NuxtImg|NuxtPicture|nuxt-img|nuxt-picture|v-img|VImg|ion-img|IonImg|q-img|QImg|el-image|ElImage|StaticImage|GatsbyImage|p-image)(?=[\s/>])/, code)) {
         const end = tagEnd(code, m.index);
         const tag = code.slice(m.index, end === -1 ? undefined : end);
         if ((tag.startsWith("<Image") || tag.startsWith("<Picture")) && !/\ssrc\s*=/.test(tag)) continue;
